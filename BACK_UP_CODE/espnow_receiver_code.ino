@@ -1,3 +1,10 @@
+/*
+  Rui Santos & Sara Santos - Random Nerd Tutorials
+  Complete project details at https://RandomNerdTutorials.com/esp-now-esp32-arduino-ide/  
+  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.
+  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+*/
+
 #include <esp_now.h>
 #include <WiFi.h>
 
@@ -8,15 +15,6 @@ const int RChannel = 0; // Channel to use for PWM (ESP32 supports 16 channels)
 const int LChannel = 1;
 const int rightMotor = 23;
 const int leftMotor = 22;
-const int Idle = 191;
-
-int maxForwardSpeed = 256;
-int minForwardSpeed = 192;
-int maxReverseSpeed = 128;
-int minReverseSpeed = 190;
-int forwardSpeed = 200;
-int reverseSpeed = 180;
-
 // Structure example to receive data
 // Must match the sender structure
 typedef struct struct_message {
@@ -33,52 +31,27 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   Serial.println(len);
   Serial.print("Char: ");
   Serial.println(myData.a);
-  Serial.print("Speed");
-  Serial.println(forwardSpeed);
-  Serial.println(reverseSpeed);
   Serial.println();
-  
+
   if (myData.a[0] == 'w') { 
-    ledcWrite(RChannel, forwardSpeed);
-    ledcWrite(LChannel, forwardSpeed);
+    ledcWrite(RChannel, 200);
+    ledcWrite(LChannel, 200);
   }
   else if (myData.a[0] == 'a') {  
-    ledcWrite(RChannel, forwardSpeed);
-    ledcWrite(LChannel, reverseSpeed);
+    ledcWrite(RChannel, 200);
+    ledcWrite(LChannel, 180);
   }
   else if (myData.a[0] == 's') { 
-    ledcWrite(RChannel, reverseSpeed);
-    ledcWrite(LChannel, reverseSpeed);
+    ledcWrite(RChannel, 180);
+    ledcWrite(LChannel, 180);
   }
   else if (myData.a[0] == 'd') {  
-    ledcWrite(RChannel, reverseSpeed);
-    ledcWrite(LChannel, forwardSpeed);
-  }
-  else if (myData.a[0] == 'u') { 
-    Serial.print("forward");
-    forwardSpeed = forwardSpeed + 1;
-    reverseSpeed = reverseSpeed - 1;
-    if(forwardSpeed > maxForwardSpeed){
-      forwardSpeed = maxForwardSpeed;
-    }
-    if(reverseSpeed < maxReverseSpeed){
-      reverseSpeed = maxReverseSpeed;
-    }
-  }
-  else if (myData.a[0] == 'j') {  
-    Serial.print("back");
-    forwardSpeed = forwardSpeed - 1;
-    reverseSpeed = reverseSpeed + 1;
-    if(forwardSpeed < minForwardSpeed){
-      forwardSpeed = minForwardSpeed;
-    }
-    if(reverseSpeed > minReverseSpeed){
-      reverseSpeed = minReverseSpeed;
-    }
+    ledcWrite(RChannel, 180);
+    ledcWrite(LChannel, 200);
   }
   else{
-    ledcWrite(RChannel, Idle);
-    ledcWrite(LChannel, Idle);
+    ledcWrite(RChannel, 191);
+    ledcWrite(LChannel, 191);
   }
 }
  
