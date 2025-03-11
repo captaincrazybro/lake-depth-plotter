@@ -23,6 +23,12 @@ typedef struct struct_message {
     char a[32];
 } struct_message;
 
+// Struct to hold motor data for controlling the motors
+struct Motor_Data {
+  int left;
+  int right;
+};
+
 // Create a struct_message called myData
 struct_message myData;
 
