@@ -3,9 +3,9 @@ int MAX_SPEED = 230;
 Motor_Data Calculate_Motor_Data(double x0, double y0, double x1, double y1, double dir) {
   double xc = x1 - x0;
   double yc = y1 - y0;
-  double c_angle = atan2(yc, xc)*180.0f/PI;
+  double c_angle = atan2(yc, xc);
   double ang_diff = Parse_Angle(c_angle - dir);
-  int motor_diff = MAX_SPEED/2 * abs(ang_diff)/180.0f;
+  int motor_diff = MAX_SPEED/2 * abs(ang_diff)/PI;
   
   Motor_Data data;
   // Calculates motor values for appropriate tragectory
@@ -23,10 +23,10 @@ Motor_Data Calculate_Motor_Data(double x0, double y0, double x1, double y1, doub
 } 
 
 double Parse_Angle(double ang) {
-  if (ang > 180.0f) {
-    return ang-360.0f;
-  } else if (ang < -180.0f) {
-    return 360.0f + ang;
+  if (ang > PI) {
+    return ang-2*PI;
+  } else if (ang < -PI) {
+    return 2*PI + ang;
   } else {
     return ang;
   }
