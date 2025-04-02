@@ -1,7 +1,8 @@
 #include <esp_now.h>
 #include <WiFi.h>
 
-
+//VARS
+//Motor control 
 const int pwmFreq = 500; // Frequency of the PWM signal (5 kHz in this case)
 const int pwmResolution = 8; // Resolution of PWM (8-bit resolution gives values from 0 to 255)
 const int RChannel = 0; // Channel to use for PWM (ESP32 supports 16 channels)
@@ -9,18 +10,30 @@ const int LChannel = 1;
 const int rightMotor = 23;
 const int leftMotor = 22;
 const int Idle = 191;
+const int maxForwardSpeed = 256;
+const int minForwardSpeed = 192;
+const int maxReverseSpeed = 128;
+const int minReverseSpeed = 190;
+int forwardSpeed = 210;
+int reverseSpeed = 172;
 
-int maxForwardSpeed = 256;
-int minForwardSpeed = 192;
-int maxReverseSpeed = 128;
-int minReverseSpeed = 190;
-int forwardSpeed = 200;
-int reverseSpeed = 180;
+//grid generation
+const int numPoints = 6;
+float gridPoints[numPoints * numPoints][2];
+float splitCoordinates[4];
 
-// Structure example to receive data
+//depth collection
+int depth;
+
+//navigation
+
+//sdcard
+
+//GPS
+
 // Must match the sender structure
 typedef struct struct_message {
-    char a[32];
+    char a[44];
 } struct_message;
 
 // Struct to hold motor data for controlling the motors
@@ -82,20 +95,31 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
       reverseSpeed = minReverseSpeed;
     }
   }
-  else{
+  else if (strlen(myData.a) > 10){
+    convertCords(myData.a, splitCoordinates);
+    memset(gridPoints, 0, sizeof(gridPoints));  // Clear array
+    generateGrid(splitCoordinates[0], splitCoordinates[1], splitCoordinates[2], splitCoordinates[3], numPoints, gridPoints);
+  }
+  else if (myData.a[0] == 'i'){
     ledcWrite(RChannel, Idle);
     ledcWrite(LChannel, Idle);
+  }
+  else{
+    depth = Measure_Depth();
+    Record_Reading(float longitude, float latitude, float depth);
   }
 }
  
 void setup() {
   // Initialize Serial Monitor
   Serial.begin(115200);
-
+  Depth_Init();
+  GPS_Init();
+  SD_Init(int year, int month, int date, int hour, int seconds); // HOW DO I GET THE THESE
   ledcSetup(RChannel, pwmFreq, pwmResolution);
-  ledcAttachPin(rightMotor, RChannel);  // Attach the PWM to the pin
+  ledcAttachPin(rightMotor, RChannel);  
   ledcSetup(LChannel, pwmFreq, pwmResolution);
-  ledcAttachPin(leftMotor, LChannel);  // Attach the PWM to the pin
+  ledcAttachPin(leftMotor, LChannel);  
 
   // Set device as a Wi-Fi Station
   WiFi.mode(WIFI_STA);
@@ -111,6 +135,4 @@ void setup() {
   esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
 }
  
-void loop() {
-
-}
+void loop() {}
