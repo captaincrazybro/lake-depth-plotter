@@ -34,7 +34,7 @@ void SD_Init(int year, int month, int date, int hour, int seconds) {
   //sprintf(fileName, "test.txt");
   myFile = SD.open(fileName, FILE_WRITE);
   if (myFile) {
-    myFile.println("longitude,latitude,depth");
+    myFile.println("longitude,latitude,depth,speed");
     myFile.close();
     Serial.printf("Successfully created new data file \"%s\"!\n", fileName);
   } else {
@@ -42,11 +42,11 @@ void SD_Init(int year, int month, int date, int hour, int seconds) {
   }
 }
 
-void Record_Reading(float longitude, float latitude, float depth) {
+void Record_Reading(float longitude, float latitude, float depth, float speed) {
   myFile = SD.open(fileName, FILE_APPEND);
   if (myFile) { 
     char newDataLine[100];
-    sprintf(newDataLine, "%f,%f,%f", longitude, latitude, depth);
+    sprintf(newDataLine, "%f,%f,%f,%f", longitude, latitude, depth, speed);
     Serial.printf("Writing: %s\n", newDataLine);
     myFile.println(newDataLine);
     myFile.close();

@@ -28,6 +28,10 @@ int Measure_Depth() {
       CS = buffer_RTT[0] + buffer_RTT[1]+ buffer_RTT[2];  
       if(buffer_RTT[3] == CS) {
         Depth_Reading = (buffer_RTT[1] << 8) + buffer_RTT[2];
+        if (Depth_Reading > 0) {
+          Serial.print("Successful non-zero depth reading: ");
+          Serial.println(Depth_reading);
+        }
       }
     }
   }
