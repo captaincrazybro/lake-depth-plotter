@@ -1,5 +1,9 @@
 #include <TinyGPS++.h>
 #include <SoftwareSerial.h>
+#include <QMC5883LCompass.h>
+
+// Compass instance
+QMC5883LCompass compass;
 
 static const int GPS_RXPin = 7, GPS_TXPin = 8;
 static const uint32_t GPSBaud = 9600;
@@ -13,6 +17,8 @@ SoftwareSerial gps_ss(GPS_RXPin, GPS_TXPin);
 void GPS_Init() {
   gps_ss.begin(GPSBaud);
   Serial.println("Initialized GPS Module!");
+  compass.init();
+  // TODO: Add calibration code once done
 }
 
 void GPS_Update() {
@@ -63,6 +69,10 @@ double Get_Current_Tragectory() {
   }
   // Other angle algorithm
   return ang;
+}
+
+float Compass_Get_Trajectory() {
+  return compass.getAzimuth();
 }
 
 TinyGPSPlus Get_GPS() {
