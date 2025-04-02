@@ -29,7 +29,8 @@ int depth;
 
 //sdcard
 
-//GPS
+// The TinyGPS++ object
+TinyGPSPlus gps;
 
 // Must match the sender structure
 typedef struct struct_message {

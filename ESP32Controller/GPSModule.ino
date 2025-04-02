@@ -8,9 +8,6 @@ QMC5883LCompass compass;
 static const int GPS_RXPin = 7, GPS_TXPin = 8;
 static const uint32_t GPSBaud = 9600;
 
-// The TinyGPS++ object
-TinyGPSPlus gps;
-
 // The serial connection to the GPS device
 SoftwareSerial gps_ss(GPS_RXPin, GPS_TXPin);
 
@@ -73,8 +70,4 @@ double Get_Current_Tragectory() {
 
 float Compass_Get_Trajectory() {
   return compass.getAzimuth();
-}
-
-TinyGPSPlus Get_GPS() {
-  return gps;
 }
