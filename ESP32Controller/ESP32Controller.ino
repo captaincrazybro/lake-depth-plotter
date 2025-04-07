@@ -98,6 +98,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     }
   }
   else if (strlen(myData.a) > 10){
+    SD_Init(gps.date.year(), gps.date.month(), gps.date.day(), gps.time.hour(), gps.time.minute());
     convertCords(myData.a, splitCoordinates);
     memset(gridPoints, 0, sizeof(gridPoints));  // Clear array
     generateGrid(splitCoordinates[0], splitCoordinates[1], splitCoordinates[2], splitCoordinates[3], numPoints, gridPoints);
@@ -107,8 +108,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     ledcWrite(LChannel, Idle);
   }
   else{
-    depth = Measure_Depth();
-    Record_Reading(float longitude, float latitude, float depth);
+    Record_Reading(gps.locaiton.lng(), gps.location.lat(), Measure_Depth(), gps.speed.mph);
   }
 }
  
@@ -117,7 +117,7 @@ void setup() {
   Serial.begin(115200);
   Depth_Init();
   GPS_Init();
-  SD_Init(int year, int month, int date, int hour, int seconds); // HOW DO I GET THE THESE
+  SD_Init(gps.date.year(), gps.date.month(), gps.date.day(), gps.time.hour(), gps.time.minute());
   ledcSetup(RChannel, pwmFreq, pwmResolution);
   ledcAttachPin(rightMotor, RChannel);  
   ledcSetup(LChannel, pwmFreq, pwmResolution);
