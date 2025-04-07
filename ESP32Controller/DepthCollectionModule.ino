@@ -3,7 +3,7 @@ unsigned char buffer_RTT[4] = {0};
 uint8_t CS;
 #define COM 0x55
 int Depth_Reading = 0;
-SoftwareSerial depthSerial(7, 8); 
+SoftwareSerial depthSerial(12, 13); 
 
 // Initializes the serial module for reading the depth data
 void Depth_Init() {

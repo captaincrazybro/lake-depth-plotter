@@ -5,7 +5,7 @@
 // Compass instance
 QMC5883LCompass compass;
 
-static const int GPS_RXPin = 7, GPS_TXPin = 8;
+static const int GPS_RXPin = 14, GPS_TXPin = 27;
 static const uint32_t GPSBaud = 9600;
 
 // The serial connection to the GPS device

@@ -1,3 +1,4 @@
+#include <TinyGPS++.h>
 #include <esp_now.h>
 #include <WiFi.h>
 
@@ -7,8 +8,8 @@ const int pwmFreq = 500; // Frequency of the PWM signal (5 kHz in this case)
 const int pwmResolution = 8; // Resolution of PWM (8-bit resolution gives values from 0 to 255)
 const int RChannel = 0; // Channel to use for PWM (ESP32 supports 16 channels)
 const int LChannel = 1;
-const int rightMotor = 23;
-const int leftMotor = 22;
+const int rightMotor = 25;
+const int leftMotor = 26;
 const int Idle = 191;
 const int maxForwardSpeed = 256;
 const int minForwardSpeed = 192;
