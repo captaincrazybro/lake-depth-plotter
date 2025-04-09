@@ -23,9 +23,9 @@ void GPS_Update() {
     gps.encode(gps_ss.read());
     if (gps.location.isUpdated()) {
       Serial.print("Successful GPS Reading: ");
-      Serial.print(gps.location.lat());
+      Serial.print(gps.location.lat(), 6);
       Serial.print(", ");
-      Serial.println(gps.location.lng());
+      Serial.println(gps.location.lng(), 6);
     }
   }
 }
