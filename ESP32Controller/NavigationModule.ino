@@ -1,4 +1,13 @@
+#define VOLTAGE_READER_PIN 4
+// Battery level reading that corresponds to a low battery reading
+#define LOW_BATTERY_THRESHOLD 2250
+
 int MAX_SPEED = 230;
+
+void Navigation_Init() {
+  pinMode(VOLTAGE_READER_PIN, INPUT);
+  analogReadResolution(12);
+}
 
 // In this function, remember that x is longitude and y is lattitude!!
 Motor_Data Calculate_Motor_Data(double x0, double y0, double x1, double y1, double dir) {
@@ -22,6 +31,11 @@ Motor_Data Calculate_Motor_Data(double x0, double y0, double x1, double y1, doub
 
   return data;
 } 
+
+bool Is_Battery_Low() {
+  int batteryLevel = analogRead(VOLTAGE_READER_PIN);
+  return batteryLevel <= LOW_BATTERY_THRESHOLD;
+}
 
 double Parse_Angle(double ang) {
   if (ang > PI) {
