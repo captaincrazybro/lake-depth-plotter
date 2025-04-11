@@ -27,6 +27,21 @@ float splitCoordinates[4];
 int depth;
 
 //navigation
+int pointIndex = 0;// how the boat knows which point to go to next
+float yPoint = gridPoints[pointIndex][0]; //lat 
+float xPoint = gridPoints[pointIndex][1]; //long
+float threshold = 0.00003;
+float currentX;
+float currentY;
+float targetX;
+float targetY;
+float dx;
+float dy;
+float dD;//delta distance
+bool isTraversing = false;
+bool goHome = false;
+float homeX;
+float homeY;
 
 //sdcard
 
@@ -97,19 +112,32 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
       reverseSpeed = minReverseSpeed;
     }
   }
+  else if (myData.a[0] == 'h') {  //home
+    isTraversing = false;
+    goHome = true;
+  }
+  else if (myData.a[0] == 'r') {  //resume
+    isTraversing = true;
+    goHome = false;
+  }
+  else if (myData.a[0] == 't') {  //stop
+    isTraversing = false;
+    goHome = false;
+  }
   else if (strlen(myData.a) > 10){
-    SD_Init(gps.date.year(), gps.date.month(), gps.date.day(), gps.time.hour(), gps.time.minute());
-    convertCords(myData.a, splitCoordinates);
-    memset(gridPoints, 0, sizeof(gridPoints));  // Clear array
-    generateGrid(splitCoordinates[0], splitCoordinates[1], splitCoordinates[2], splitCoordinates[3], numPoints, gridPoints);
+    if (!isTraversing) {
+      New_File(gps.date.year(), gps.date.month(), gps.date.day(), gps.time.hour(), gps.time.minute());
+      convertCords(myData.a, splitCoordinates);
+      memset(gridPoints, 0, sizeof(gridPoints));  // Clear array
+      generateGrid(splitCoordinates[0], splitCoordinates[1], splitCoordinates[2], splitCoordinates[3], numPoints, gridPoints);
+      homeX = gps.location.lng();
+      homeY = gps.location.lat();
+      isTraversing = true;
+    }
   }
   else if (myData.a[0] == 'i'){
     ledcWrite(RChannel, Idle);
     ledcWrite(LChannel, Idle);
-  }
-  else{
-
-    Record_Reading(gps.location.lng(), gps.location.lat(), Measure_Depth(), gps.speed.mph);
   }
 }
  
@@ -118,7 +146,7 @@ void setup() {
   Serial.begin(115200);
   Depth_Init();
   GPS_Init();
-  SD_Init(gps.date.year(), gps.date.month(), gps.date.day(), gps.time.hour(), gps.time.minute());
+  SD_Init();
   ledcSetup(RChannel, pwmFreq, pwmResolution);
   ledcAttachPin(rightMotor, RChannel);  
   ledcSetup(LChannel, pwmFreq, pwmResolution);
@@ -138,4 +166,44 @@ void setup() {
   esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
 }
  
-void loop() {}
+void loop() {
+  // If in the midst of traversing point grid
+  if (isTraversing) {
+    currentX = gps.location.lng();
+    currentY = gps.location.lat();
+    targetX = gridPoints[pointIndex][1]; //long
+    targetY = gridPoints[pointIndex][0]; //long
+    dx = currentX - targetX;
+    dy = currentY - targetY;
+    dD = dx*dx + dy*dy;
+    // If reaches the point within threshold, move on to text point
+    if (dD <= threshold*threshold){
+      pointIndex++;
+    }
+    Motor_Data data = Calculate_Motor_Data(currentX, currentY, targetX, targetY, Compass_Get_Trajectory());
+    Record_Reading(gps.location.lng(), gps.location.lat(), Measure_Depth(), gps.speed.mph());
+    // If reaches the end of the grid, stops traversing
+    if (pointIndex >= numPoint*numPoint) {
+      isTraversing = false;
+      goHome = true;
+    // Outputs commands to motor only if haven't finished traversing
+    } else {
+      ledcWrite(RChannel, data.right);
+      ledcWrite(LChannel, data.left);
+    }
+  } 
+  else if (goHome) {
+    currentX = gps.location.lng();
+    currentY = gps.location.lat();
+    dx = currentX - homeX;
+    dy = currentY - homeY;
+    dD = dx*dx + dy*dy;
+    if (dD <= threshold*threshold){
+      goHome = false;
+    }
+    Motor_Data data = Calculate_Motor_Data(currentX, currentY, homeX, homeY, Compass_Get_Trajectory());
+    ledcWrite(RChannel, data.right);
+    ledcWrite(LChannel, data.left);
+  }
+  delay(100);
+}
