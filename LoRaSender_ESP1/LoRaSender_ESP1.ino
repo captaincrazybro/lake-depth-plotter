@@ -84,6 +84,15 @@ void loop()
         case 'j':
           sprintf(txpacket,"j"); 
           break;
+        case 'h':
+          sprintf(txpacket,"h");
+          break;
+        case 't':
+          sprintf(txpacket,"t");
+          break;
+        case 'r':
+          sprintf(txpacket,"r");
+          break;
         default:
           sprintf(txpacket,"i");
           break;
@@ -94,7 +103,7 @@ void loop()
       sprintf(txpacket, "%s", input.c_str());
     }
   
-  delay(1000);
+  // delay(1000);
   txNumber += 0.01;
   //sprintf(txpacket,"Hello world number %0.2f",txNumber);  //start a package
   

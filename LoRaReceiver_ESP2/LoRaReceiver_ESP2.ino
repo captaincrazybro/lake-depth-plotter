@@ -93,7 +93,10 @@ void loop()
     Radio.Rx(0);
   }
   Radio.IrqProcess( );
+  // delay(2000);
+}
 
+void Send_ESP_Now_Sig() {
   //Espnow
   // Send message via ESP-NOW
   esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &myData, sizeof(myData));
@@ -104,7 +107,6 @@ void loop()
   else {
     Serial.println("Error sending the data");
   }
-  delay(2000);
 }
 
 void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
@@ -135,6 +137,15 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
       else if (strcmp(rxpacket, "j") == 0) {
           strcpy(myData.a, "j");              
       } 
+      else if (strcmp(rxpacket, "h") == 0) {
+          strcpy(myData.a, "h");
+      } 
+      else if (strcmp(rxpacket, "t") == 0) {
+          strcpy(myData.a, "t");
+      }
+      else if (strcmp(rxpacket, "r") == 0) {
+          strcpy(myData.a, "r");
+      }
       else {
           strcpy(myData.a, "i");
       }
@@ -144,5 +155,7 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
       float receivedValue = atof(rxpacket);
       dtostrf(receivedValue, 9, 6, myData.a);
     }
+    
+    Send_ESP_Now_Sig();
     lora_idle = true;
 }
