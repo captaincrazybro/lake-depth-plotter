@@ -108,7 +108,8 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     ledcWrite(LChannel, Idle);
   }
   else{
-    Record_Reading(gps.locaiton.lng(), gps.location.lat(), Measure_Depth(), gps.speed.mph);
+
+    Record_Reading(gps.location.lng(), gps.location.lat(), Measure_Depth(), gps.speed.mph);
   }
 }
  
