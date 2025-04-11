@@ -42,11 +42,16 @@ bool isTraversing = false;
 bool goHome = false;
 float homeX;
 float homeY;
+Motor_Data data;
+int currentTraj;
 
 //sdcard
+long record_millis = 0;
+long record_delay_ms = 1000;
 
 // The TinyGPS++ object
 TinyGPSPlus gps;
+bool gpsLockFound = false;
 
 // Must match the sender structure
 typedef struct struct_message {
@@ -147,6 +152,7 @@ void setup() {
   Depth_Init();
   GPS_Init();
   SD_Init();
+  record_millis = millis();
   ledcSetup(RChannel, pwmFreq, pwmResolution);
   ledcAttachPin(rightMotor, RChannel);  
   ledcSetup(LChannel, pwmFreq, pwmResolution);
@@ -167,12 +173,22 @@ void setup() {
 }
  
 void loop() {
+  // Updates the gps store
+  GPS_Update();
+
+  // Waits for first GPS lock then records home coordinates
+  if (!gpsLockFound && gps.location.isUpdated()) {
+    gpsLockFound = true;
+    homeX = gps.location.lng();
+    homeY = gps.location.lat();
+  }
+
   // If in the midst of traversing point grid
   if (isTraversing) {
     currentX = gps.location.lng();
     currentY = gps.location.lat();
     targetX = gridPoints[pointIndex][1]; //long
-    targetY = gridPoints[pointIndex][0]; //long
+    targetY = gridPoints[pointIndex][0]; //lat
     dx = currentX - targetX;
     dy = currentY - targetY;
     dD = dx*dx + dy*dy;
@@ -180,8 +196,23 @@ void loop() {
     if (dD <= threshold*threshold){
       pointIndex++;
     }
-    Motor_Data data = Calculate_Motor_Data(currentX, currentY, targetX, targetY, Compass_Get_Trajectory());
-    Record_Reading(gps.location.lng(), gps.location.lat(), Measure_Depth(), gps.speed.mph());
+    currentTraj = Compass_Get_Trajectory();
+    data = Calculate_Motor_Data(currentX, currentY, targetX, targetY, currentTraj);
+    // TODO: Remove this after first testing
+    Serial.print("Traversing... Current traj: ");
+    Serial.print(currentTraj);
+    Serial.print(", Left code: ");
+    Serial.print(data.left);
+    Serial.print(", Right code: ");
+    Serial.println(data.right);
+
+    // Measures the depth
+    depth = Measure_Depth();
+    if (depth != 0 && (millis() - record_millis) > record_delay_ms) {
+      Record_Reading(gps.location.lng(), gps.location.lat(), Measure_Depth(), gps.speed.mph());
+      record_millis = millis();
+    }
+
     // If reaches the end of the grid, stops traversing
     if (pointIndex >= numPoint*numPoint) {
       isTraversing = false;
@@ -201,7 +232,16 @@ void loop() {
     if (dD <= threshold*threshold){
       goHome = false;
     }
-    Motor_Data data = Calculate_Motor_Data(currentX, currentY, homeX, homeY, Compass_Get_Trajectory());
+    currentTraj = Compass_Get_Trajectory();
+    data = Calculate_Motor_Data(currentX, currentY, homeX, homeY, currentTraj);
+    // TODO: Remove this after first testing
+    Serial.print("Going home... Current traj: ");
+    Serial.print(currentTraj);
+    Serial.print(", Left code: ");
+    Serial.print(data.left);
+    Serial.print(", Right code: ");
+    Serial.println(data.right);
+
     ledcWrite(RChannel, data.right);
     ledcWrite(LChannel, data.left);
   }
