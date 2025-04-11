@@ -15,7 +15,8 @@ void GPS_Init() {
   gps_ss.begin(GPSBaud);
   Serial.println("Initialized GPS Module!");
   compass.init();
-  // TODO: Add calibration code once done
+  compass.setCalibrationOffsets(310.00, -798.00, -644.00);
+  compass.setCalibrationScales(1.07, 0.85, 1.13);
 }
 
 void GPS_Update() {
@@ -69,5 +70,7 @@ double Get_Current_Tragectory() {
 }
 
 float Compass_Get_Trajectory() {
-  return compass.getAzimuth();
+  compass.read();
+  // Return azimuth and convert to radians
+  return -compass.getAzimuth()*PI/180;
 }
