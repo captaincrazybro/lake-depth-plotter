@@ -10,7 +10,7 @@
 File myFile;
 char fileName[50];
 
-void SD_Init(int year, int month, int date, int hour, int seconds) {
+void SD_Init() {
   Serial.println("Starting SD Card setup!");
   SPI.begin(SD_SCLK, SD_MISO, SD_MOSI, SD_CS);
 
@@ -28,10 +28,12 @@ void SD_Init(int year, int month, int date, int hour, int seconds) {
   if(cardType == CARD_NONE) {
     Serial.println("No SD Card attached!");
   }
+}
 
+void New_File(int year, int month, int date, int hour, int seconds) {
   // Creates the file name
   sprintf(fileName, "/data_%d-%d-%d_%d-%d.csv", year, month, date, hour, seconds);
-  //sprintf(fileName, "test.txt");
+  
   myFile = SD.open(fileName, FILE_WRITE);
   if (myFile) {
     myFile.println("longitude,latitude,depth,speed");
