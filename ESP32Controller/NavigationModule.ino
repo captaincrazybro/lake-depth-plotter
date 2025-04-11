@@ -1,5 +1,6 @@
 int MAX_SPEED = 230;
 
+// In this function, remember that x is longitude and y is lattitude!!
 Motor_Data Calculate_Motor_Data(double x0, double y0, double x1, double y1, double dir) {
   double xc = x1 - x0;
   double yc = y1 - y0;

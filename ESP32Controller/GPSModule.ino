@@ -72,5 +72,5 @@ double Get_Current_Tragectory() {
 float Compass_Get_Trajectory() {
   compass.read();
   // Return azimuth and convert to radians
-  return compass.getAzimuth()*PI/180;
+  return -compass.getAzimuth()*PI/180;
 }
