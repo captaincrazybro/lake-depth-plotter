@@ -109,7 +109,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   }
   else{
 
-    Record_Reading(gps.location.lng(), gps.location.lat(), Measure_Depth(), gps.speed.mph);
+    Record_Reading(gps.location.lng(), gps.location.lat(), Measure_Depth(), gps.speed.mph());
   }
 }
  
@@ -118,7 +118,7 @@ void setup() {
   Serial.begin(115200);
   Depth_Init();
   GPS_Init();
-  SD_Init(gps.date.year(), gps.date.month(), gps.date.day(), gps.time.hour(), gps.time.minute());
+  //SD_Init(gps.date.year(), gps.date.month(), gps.date.day(), gps.time.hour(), gps.time.minute());
   ledcSetup(RChannel, pwmFreq, pwmResolution);
   ledcAttachPin(rightMotor, RChannel);  
   ledcSetup(LChannel, pwmFreq, pwmResolution);
