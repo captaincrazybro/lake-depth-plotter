@@ -27,7 +27,7 @@ esp_now_peer_info_t peerInfo;
 #define LORA_FIX_LENGTH_PAYLOAD_ON                  false
 #define LORA_IQ_INVERSION_ON                        false
 #define RX_TIMEOUT_VALUE                            1000
-#define BUFFER_SIZE                                 44 // Define the payload size here
+#define BUFFER_SIZE                                 45 // Define the payload size here
 
 //LoRa Vars
 char txpacket[BUFFER_SIZE];

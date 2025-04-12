@@ -118,6 +118,8 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     }
   }
   else if (myData.a[0] == 'h') {  //home
+    ledcWrite(RChannel, Idle);
+    ledcWrite(LChannel, Idle);
     isTraversing = false;
     goHome = true;
   }
@@ -126,10 +128,14 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     goHome = false;
   }
   else if (myData.a[0] == 't') {  //stop
+    ledcWrite(RChannel, Idle);
+    ledcWrite(LChannel, Idle);
     isTraversing = false;
     goHome = false;
   }
   else if (strlen(myData.a) > 10){
+    Serial.print("here");
+    Serial.println(myData.a);
     if (!isTraversing) {
       New_File(gps.date.year(), gps.date.month(), gps.date.day(), gps.time.hour(), gps.time.minute());
       convertCords(myData.a, splitCoordinates);
