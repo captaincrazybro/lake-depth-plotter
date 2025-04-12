@@ -152,8 +152,7 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
     }
     else 
     {
-      float receivedValue = atof(rxpacket);
-      dtostrf(receivedValue, 9, 6, myData.a);
+      strncpy(myData.a, rxpacket, 44);
     }
     
     Send_ESP_Now_Sig();
