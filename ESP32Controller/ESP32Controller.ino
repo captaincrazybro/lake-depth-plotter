@@ -40,6 +40,7 @@ float dy;
 float dD;//delta distance
 bool isTraversing = false;
 bool goHome = false;
+bool isIdle = true;
 float homeX;
 float homeY;
 int currentTraj;
@@ -118,36 +119,28 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     }
   }
   else if (myData.a[0] == 'h') {  //home
-    ledcWrite(RChannel, Idle);
-    ledcWrite(LChannel, Idle);
     isTraversing = false;
     goHome = true;
+    isIdle = false;
   }
   else if (myData.a[0] == 'r') {  //resume
     isTraversing = true;
     goHome = false;
+    isIdle = false;
   }
   else if (myData.a[0] == 't') {  //stop
-    ledcWrite(RChannel, Idle);
-    ledcWrite(LChannel, Idle);
     isTraversing = false;
     goHome = false;
+    isIdle = true;
   }
   else if (strlen(myData.a) > 3){
-    Serial.print("here");
-    Serial.println(myData.a);
     if (!isTraversing) {
       New_File(gps.date.year(), gps.date.month(), gps.date.day(), gps.time.hour(), gps.time.minute());
       convertCords(myData.a, splitCoordinates);
       memset(gridPoints, 0, sizeof(gridPoints));  // Clear array
       generateGrid(splitCoordinates[0], splitCoordinates[1], splitCoordinates[2], splitCoordinates[3], numPoints, gridPoints);
-      Serial.print(splitCoordinates[0]);
-      Serial.print(splitCoordinates[1]);
-      Serial.print(splitCoordinates[2]);
-      Serial.print(splitCoordinates[3]);
-      homeX = gps.location.lng();
-      homeY = gps.location.lat();
       isTraversing = true;
+      isIdle = false;
     }
   }
   else if (myData.a[0] == 'i'){
@@ -185,7 +178,8 @@ void setup() {
 void loop() {
   // Updates the gps store
   GPS_Update();
-
+  Serial.print("gpswait");
+  //while(gps.location.lng() == 0 && gps.location.lat() == 0){}
   // Waits for first GPS lock then records home coordinates
   if (!gpsLockFound && gps.location.isUpdated()) {
     gpsLockFound = true;
@@ -193,6 +187,13 @@ void loop() {
     homeY = gps.location.lat();
   }
 
+  while(gps.location.lng() == 0 && gps.location.lat() == 0){}//NEVER SEEMED TO GET PAST THIS
+
+  
+  if (isIdle){//needs this or only goes idle for a second
+    ledcWrite(RChannel, Idle);
+    ledcWrite(LChannel, Idle);
+  }
   // If in the midst of traversing point grid
   if (isTraversing) {
     currentX = gps.location.lng();
@@ -211,11 +212,16 @@ void loop() {
     data = Calculate_Motor_Data(currentX, currentY, targetX, targetY, currentTraj);
     // TODO: Remove this after first testing
     Serial.print("Traversing... Current traj: ");
-    Serial.print(currentTraj);
-    Serial.print(", Left code: ");
-    Serial.print(data.left);
-    Serial.print(", Right code: ");
-    Serial.println(data.right);
+    Serial.println(currentX);
+    Serial.println(currentY);
+    Serial.println(targetX);
+    Serial.println(targetY);
+    delay(2000);
+    //Serial.print(currentTraj);
+    //Serial.print(", Left code: ");
+    //Serial.print(data.left);
+    //Serial.print(", Right code: ");
+    //Serial.println(data.right);
 
     // Measures the depth
     depth = Measure_Depth();
@@ -247,11 +253,16 @@ void loop() {
     data = Calculate_Motor_Data(currentX, currentY, homeX, homeY, currentTraj);
     // TODO: Remove this after first testing
     Serial.print("Going home... Current traj: ");
-    Serial.print(currentTraj);
-    Serial.print(", Left code: ");
-    Serial.print(data.left);
-    Serial.print(", Right code: ");
-    Serial.println(data.right);
+    Serial.print("x: ");
+    Serial.println(dx);
+    Serial.print("y: ");
+    Serial.println(dy);
+    Serial.print(dD);
+    //Serial.print(currentTraj);
+    //Serial.print(", Left code: ");
+    //Serial.print(data.left);
+    //Serial.print(", Right code: ");
+    //Serial.println(data.right);
 
     ledcWrite(RChannel, data.right);
     ledcWrite(LChannel, data.left);
