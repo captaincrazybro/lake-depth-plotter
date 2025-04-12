@@ -42,7 +42,6 @@ bool isTraversing = false;
 bool goHome = false;
 float homeX;
 float homeY;
-Motor_Data data;
 int currentTraj;
 
 //sdcard
@@ -63,6 +62,7 @@ struct Motor_Data {
   int left;
   int right;
 };
+Motor_Data data;
 
 // Create a struct_message called myData
 struct_message myData;
@@ -214,7 +214,7 @@ void loop() {
     }
 
     // If reaches the end of the grid, stops traversing
-    if (pointIndex >= numPoint*numPoint) {
+    if (pointIndex >= numPoints*numPoints) {
       isTraversing = false;
       goHome = true;
     // Outputs commands to motor only if haven't finished traversing
