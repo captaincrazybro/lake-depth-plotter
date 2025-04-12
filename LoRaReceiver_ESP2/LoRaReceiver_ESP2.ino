@@ -10,7 +10,7 @@ char direction;
 uint8_t broadcastAddress[] = {0x08, 0xa6, 0xf7, 0xb1, 0xd3, 0xec};
 // Must match the receiver structure
 typedef struct struct_message {
-  char a[32];
+  char a[44];
 } struct_message;
 // Create a struct_message called myData
 struct_message myData;
@@ -27,7 +27,7 @@ esp_now_peer_info_t peerInfo;
 #define LORA_FIX_LENGTH_PAYLOAD_ON                  false
 #define LORA_IQ_INVERSION_ON                        false
 #define RX_TIMEOUT_VALUE                            1000
-#define BUFFER_SIZE                                 30 // Define the payload size here
+#define BUFFER_SIZE                                 44 // Define the payload size here
 
 //LoRa Vars
 char txpacket[BUFFER_SIZE];

@@ -19,7 +19,7 @@ int forwardSpeed = 210;
 int reverseSpeed = 172;
 
 //grid generation
-const int numPoints = 6;
+const int numPoints = 2;
 float gridPoints[numPoints * numPoints][2];
 float splitCoordinates[4];
 
@@ -135,6 +135,10 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
       convertCords(myData.a, splitCoordinates);
       memset(gridPoints, 0, sizeof(gridPoints));  // Clear array
       generateGrid(splitCoordinates[0], splitCoordinates[1], splitCoordinates[2], splitCoordinates[3], numPoints, gridPoints);
+      Serial.print(splitCoordinates[0]);
+      Serial.print(splitCoordinates[1]);
+      Serial.print(splitCoordinates[2]);
+      Serial.print(splitCoordinates[3]);
       homeX = gps.location.lng();
       homeY = gps.location.lat();
       isTraversing = true;
@@ -194,6 +198,7 @@ void loop() {
     dD = dx*dx + dy*dy;
     // If reaches the point within threshold, move on to text point
     if (dD <= threshold*threshold){
+      Serial.print("Point reached");
       pointIndex++;
     }
     currentTraj = Compass_Get_Trajectory();

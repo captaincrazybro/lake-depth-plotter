@@ -22,7 +22,7 @@
 
 
 #define RX_TIMEOUT_VALUE                            1000
-#define BUFFER_SIZE                                 30 // Define the payload size here
+#define BUFFER_SIZE                                 44 // Define the payload size here
 
 char txpacket[BUFFER_SIZE];
 char rxpacket[BUFFER_SIZE];
