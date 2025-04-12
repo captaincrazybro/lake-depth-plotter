@@ -133,7 +133,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     isTraversing = false;
     goHome = false;
   }
-  else if (strlen(myData.a) > 10){
+  else if (strlen(myData.a) > 3){
     Serial.print("here");
     Serial.println(myData.a);
     if (!isTraversing) {
