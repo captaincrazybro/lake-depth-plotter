@@ -2,7 +2,7 @@
 // Battery level reading that corresponds to a low battery reading
 #define LOW_BATTERY_THRESHOLD 2250
 
-int MAX_SPEED = 230;
+int MAX_SPEED = 220;
 
 void Navigation_Init() {
   pinMode(VOLTAGE_READER_PIN, INPUT);

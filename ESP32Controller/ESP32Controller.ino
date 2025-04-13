@@ -178,22 +178,34 @@ void setup() {
 void loop() {
   // Updates the gps store
   GPS_Update();
-  Serial.print("gpswait");
-  //while(gps.location.lng() == 0 && gps.location.lat() == 0){}
+
+
+  while (!gps.location.isValid()) {
+    GPS_Update();
+
+    Serial.println("Waiting for GPS fix...");
+    Serial.print("Lat: "); Serial.println(gps.location.lat(), 6);
+    Serial.print("Lng: "); Serial.println(gps.location.lng(), 6);
+    Serial.print("Satellites: "); Serial.println(gps.satellites.value());
+
+    delay(1000);
+  }
+
   // Waits for first GPS lock then records home coordinates
-  if (!gpsLockFound && gps.location.isUpdated()) {
+  if (!gpsLockFound && gps.location.isValid()) {//changed this from updated to valid
     gpsLockFound = true;
     homeX = gps.location.lng();
     homeY = gps.location.lat();
+    Serial.print("home coords");
+    Serial.print(homeX);
+    Serial.print(homeY);
   }
 
-  while(gps.location.lng() == 0 && gps.location.lat() == 0){}//NEVER SEEMED TO GET PAST THIS
-
-  
   if (isIdle){//needs this or only goes idle for a second
     ledcWrite(RChannel, Idle);
     ledcWrite(LChannel, Idle);
   }
+
   // If in the midst of traversing point grid
   if (isTraversing) {
     currentX = gps.location.lng();
