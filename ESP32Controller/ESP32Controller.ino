@@ -179,16 +179,14 @@ void loop() {
   // Updates the gps store
   GPS_Update();
 
-
   while (!gps.location.isValid()) {
-    GPS_Update();
-
     Serial.println("Waiting for GPS fix...");
     Serial.print("Lat: "); Serial.println(gps.location.lat(), 6);
     Serial.print("Lng: "); Serial.println(gps.location.lng(), 6);
     Serial.print("Satellites: "); Serial.println(gps.satellites.value());
 
-    delay(1000);
+    delay(100);
+    GPS_Update();
   }
 
   // Waits for first GPS lock then records home coordinates

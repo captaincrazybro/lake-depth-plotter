@@ -22,12 +22,6 @@ void GPS_Init() {
 void GPS_Update() {
   while (gps_ss.available() > 0){
     gps.encode(gps_ss.read());
-    if (gps.location.isUpdated()) {
-      //Serial.print("Successful GPS Reading: ");
-      //Serial.print(gps.location.lat(), 6);
-      //Serial.print(", ");
-      //Serial.println(gps.location.lng(), 6);
-    }
   }
 }
 
