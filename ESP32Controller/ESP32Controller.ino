@@ -40,7 +40,7 @@ float dy;
 float dD;//delta distance
 bool isTraversing = false;
 bool goHome = false;
-bool isIdle = true;
+bool needsStopped = false;
 float homeX;
 float homeY;
 int currentTraj;
@@ -121,17 +121,15 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   else if (myData.a[0] == 'h') {  //home
     isTraversing = false;
     goHome = true;
-    isIdle = false;
   }
   else if (myData.a[0] == 'r') {  //resume
     isTraversing = true;
     goHome = false;
-    isIdle = false;
   }
   else if (myData.a[0] == 't') {  //stop
     isTraversing = false;
     goHome = false;
-    isIdle = true;
+    needsStopped = true;
   }
   else if (strlen(myData.a) > 3){
     if (!isTraversing) {
@@ -140,7 +138,6 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
       memset(gridPoints, 0, sizeof(gridPoints));  // Clear array
       generateGrid(splitCoordinates[0], splitCoordinates[1], splitCoordinates[2], splitCoordinates[3], numPoints, gridPoints);
       isTraversing = true;
-      isIdle = false;
     }
   }
   else if (myData.a[0] == 'i'){
@@ -199,83 +196,91 @@ void loop() {
     Serial.print(homeY);
   }
 
-  if (isIdle){//needs this or only goes idle for a second
+  // if (isIdle){//needs this or only goes idle for a second
+  //   ledcWrite(RChannel, Idle);
+  //   ledcWrite(LChannel, Idle);
+  // }
+
+  if (needsStopped) {
     ledcWrite(RChannel, Idle);
     ledcWrite(LChannel, Idle);
-  }
+    needsStopped = false;
+  } else {
+    // If in the midst of traversing point grid
+    if (isTraversing) {
+      currentX = gps.location.lng();
+      currentY = gps.location.lat();
+      targetX = gridPoints[pointIndex][1]; //long
+      targetY = gridPoints[pointIndex][0]; //lat
+      dx = currentX - targetX;
+      dy = currentY - targetY;
+      dD = dx*dx + dy*dy;
+      // If reaches the point within threshold, move on to text point
+      if (dD <= threshold*threshold){
+        Serial.print("Point reached");
+        pointIndex++;
+      }
+      currentTraj = Compass_Get_Trajectory();
+      data = Calculate_Motor_Data(currentX, currentY, targetX, targetY, currentTraj);
+      // TODO: Remove this after first testing
+      Serial.print("Traversing... Current traj: ");
+      Serial.println(currentX);
+      Serial.println(currentY);
+      Serial.println(targetX);
+      Serial.println(targetY);
+      delay(2000);
+      //Serial.print(currentTraj);
+      //Serial.print(", Left code: ");
+      //Serial.print(data.left);
+      //Serial.print(", Right code: ");
+      //Serial.println(data.right);
 
-  // If in the midst of traversing point grid
-  if (isTraversing) {
-    currentX = gps.location.lng();
-    currentY = gps.location.lat();
-    targetX = gridPoints[pointIndex][1]; //long
-    targetY = gridPoints[pointIndex][0]; //lat
-    dx = currentX - targetX;
-    dy = currentY - targetY;
-    dD = dx*dx + dy*dy;
-    // If reaches the point within threshold, move on to text point
-    if (dD <= threshold*threshold){
-      Serial.print("Point reached");
-      pointIndex++;
-    }
-    currentTraj = Compass_Get_Trajectory();
-    data = Calculate_Motor_Data(currentX, currentY, targetX, targetY, currentTraj);
-    // TODO: Remove this after first testing
-    Serial.print("Traversing... Current traj: ");
-    Serial.println(currentX);
-    Serial.println(currentY);
-    Serial.println(targetX);
-    Serial.println(targetY);
-    delay(2000);
-    //Serial.print(currentTraj);
-    //Serial.print(", Left code: ");
-    //Serial.print(data.left);
-    //Serial.print(", Right code: ");
-    //Serial.println(data.right);
+      // Measures the depth
+      depth = Measure_Depth();
+      if (depth != 0 && (millis() - record_millis) > record_delay_ms) {
+        Record_Reading(gps.location.lng(), gps.location.lat(), Measure_Depth(), gps.speed.mph());
+        record_millis = millis();
+      }
 
-    // Measures the depth
-    depth = Measure_Depth();
-    if (depth != 0 && (millis() - record_millis) > record_delay_ms) {
-      Record_Reading(gps.location.lng(), gps.location.lat(), Measure_Depth(), gps.speed.mph());
-      record_millis = millis();
-    }
+      // If reaches the end of the grid, stops traversing
+      if (pointIndex >= numPoints*numPoints) {
+        isTraversing = false;
+        goHome = true;
+      // Outputs commands to motor only if haven't finished traversing
+      } else {
+        ledcWrite(RChannel, data.right);
+        ledcWrite(LChannel, data.left);
+      }
+    } 
+    else if (goHome) {
+      currentX = gps.location.lng();
+      currentY = gps.location.lat();
+      dx = currentX - homeX;
+      dy = currentY - homeY;
+      dD = dx*dx + dy*dy;
+      if (dD <= threshold*threshold){
+        goHome = false;
+        ledcWrite(RChannel, Idle);
+        ledcWrite(LChannel, Idle);
+      }
+      currentTraj = Compass_Get_Trajectory();
+      data = Calculate_Motor_Data(currentX, currentY, homeX, homeY, currentTraj);
+      // TODO: Remove this after first testing
+      Serial.print("Going home... Current traj: ");
+      Serial.print("x: ");
+      Serial.println(dx);
+      Serial.print("y: ");
+      Serial.println(dy);
+      Serial.print(dD);
+      //Serial.print(currentTraj);
+      //Serial.print(", Left code: ");
+      //Serial.print(data.left);
+      //Serial.print(", Right code: ");
+      //Serial.println(data.right);
 
-    // If reaches the end of the grid, stops traversing
-    if (pointIndex >= numPoints*numPoints) {
-      isTraversing = false;
-      goHome = true;
-    // Outputs commands to motor only if haven't finished traversing
-    } else {
       ledcWrite(RChannel, data.right);
       ledcWrite(LChannel, data.left);
     }
-  } 
-  else if (goHome) {
-    currentX = gps.location.lng();
-    currentY = gps.location.lat();
-    dx = currentX - homeX;
-    dy = currentY - homeY;
-    dD = dx*dx + dy*dy;
-    if (dD <= threshold*threshold){
-      goHome = false;
-    }
-    currentTraj = Compass_Get_Trajectory();
-    data = Calculate_Motor_Data(currentX, currentY, homeX, homeY, currentTraj);
-    // TODO: Remove this after first testing
-    Serial.print("Going home... Current traj: ");
-    Serial.print("x: ");
-    Serial.println(dx);
-    Serial.print("y: ");
-    Serial.println(dy);
-    Serial.print(dD);
-    //Serial.print(currentTraj);
-    //Serial.print(", Left code: ");
-    //Serial.print(data.left);
-    //Serial.print(", Right code: ");
-    //Serial.println(data.right);
-
-    ledcWrite(RChannel, data.right);
-    ledcWrite(LChannel, data.left);
   }
   delay(100);
 }
