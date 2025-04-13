@@ -25,6 +25,7 @@ void setup(){
   WiFi.mode(WIFI_STA);
   WiFi.STA.begin();
 
+  delay(1000);
   Serial.print("[DEFAULT] ESP32 Board MAC Address: ");
   readMacAddress();
 }

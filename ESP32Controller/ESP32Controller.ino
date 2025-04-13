@@ -143,6 +143,15 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   else if (myData.a[0] == 'i'){
     ledcWrite(RChannel, Idle);
     ledcWrite(LChannel, Idle);
+
+    // Test depth
+    depth = Measure_Depth();
+    if (depth != 0) {
+      Record_Reading(gps.location.lng(), gps.location.lat(), Measure_Depth(), gps.speed.mph());
+      record_millis = millis();
+    } else {
+      Serial.println("Zero depth reading!");
+    }
   }
 }
  
@@ -152,6 +161,7 @@ void setup() {
   Depth_Init();
   GPS_Init();
   SD_Init();
+  New_File(gps.date.year(), gps.date.month(), gps.date.day(), gps.time.hour(), gps.time.minute());
   record_millis = millis();
   ledcSetup(RChannel, pwmFreq, pwmResolution);
   ledcAttachPin(rightMotor, RChannel);  
@@ -224,11 +234,13 @@ void loop() {
       data = Calculate_Motor_Data(currentX, currentY, targetX, targetY, currentTraj);
       // TODO: Remove this after first testing
       Serial.print("Traversing... Current traj: ");
+      Serial.println(currentTraj);
       Serial.println(currentX);
       Serial.println(currentY);
       Serial.println(targetX);
       Serial.println(targetY);
-      delay(2000);
+      Serial.println(data.left);
+      Serial.println(data.right);
       //Serial.print(currentTraj);
       //Serial.print(", Left code: ");
       //Serial.print(data.left);
