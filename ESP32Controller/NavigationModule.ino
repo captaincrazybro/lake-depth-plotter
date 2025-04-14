@@ -2,7 +2,8 @@
 // Battery level reading that corresponds to a low battery reading
 #define LOW_BATTERY_THRESHOLD 2250
 
-int MAX_SPEED = 220;
+int MAX_FSPEED = 220;
+int MAX_RSPEED = 162;
 
 void Navigation_Init() {
   pinMode(VOLTAGE_READER_PIN, INPUT);
@@ -15,18 +16,18 @@ Motor_Data Calculate_Motor_Data(double x0, double y0, double x1, double y1, doub
   double yc = y1 - y0;
   double c_angle = atan2(yc, xc);
   double ang_diff = Parse_Angle(c_angle - dir);
-  int motor_diff = MAX_SPEED/2 * abs(ang_diff)/PI;
+  int motor_diff = (MAX_FSPEED - MAX_RSPEED) * abs(ang_diff)/PI;
   
   Motor_Data data;
   // Calculates motor values for appropriate tragectory
   if (ang_diff > 0) {
     // Turn left
-    data.left = MAX_SPEED - motor_diff;
-    data.right = MAX_SPEED;
+    data.left = MAX_FSPEED - motor_diff;
+    data.right = MAX_FSPEED;
   } else {
     // Turn right
-    data.right = MAX_SPEED - motor_diff;
-    data.left = MAX_SPEED;
+    data.right = MAX_FSPEED - motor_diff;
+    data.left = MAX_FSPEED;
   }
 
   return data;
