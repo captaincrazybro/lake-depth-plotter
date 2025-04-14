@@ -43,6 +43,7 @@ bool goHome = false;
 bool needsStopped = false;
 float homeX;
 float homeY;
+int batteryLevel;
 
 //sdcard
 long record_millis = 0;
@@ -186,10 +187,10 @@ void loop() {
   GPS_Update();
 
   while (!gps.location.isValid()) {
-    Serial.println("Waiting for GPS fix...");
-    Serial.print("Lat: "); Serial.println(gps.location.lat(), 6);
-    Serial.print("Lng: "); Serial.println(gps.location.lng(), 6);
-    Serial.print("Satellites: "); Serial.println(gps.satellites.value());
+    //Serial.println("Waiting for GPS fix...");
+    //Serial.print("Lat: "); Serial.println(gps.location.lat(), 6);
+    //Serial.print("Lng: "); Serial.println(gps.location.lng(), 6);
+    //Serial.print("Satellites: "); Serial.println(gps.satellites.value());
 
     delay(100);
     GPS_Update();
@@ -210,6 +211,12 @@ void loop() {
   //   ledcWrite(LChannel, Idle);
   // }
 
+  batteryLevel = analogRead(4);
+  if (batteryLevel <= 2722) {//2722 = 12v
+    isTraversing = false;
+    goHome = true;
+  }
+  
   if (needsStopped) {
     ledcWrite(RChannel, Idle);
     ledcWrite(LChannel, Idle);
