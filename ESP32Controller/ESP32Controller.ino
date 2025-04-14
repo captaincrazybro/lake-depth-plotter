@@ -214,7 +214,8 @@ void loop() {
     ledcWrite(RChannel, Idle);
     ledcWrite(LChannel, Idle);
     needsStopped = false;
-  } else {
+  } 
+  else {
     // If in the midst of traversing point grid
     if (isTraversing) {
       currentX = gps.location.lng();
