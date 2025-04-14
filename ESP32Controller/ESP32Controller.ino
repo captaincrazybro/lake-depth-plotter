@@ -43,7 +43,6 @@ bool goHome = false;
 bool needsStopped = false;
 float homeX;
 float homeY;
-int currentTraj;
 
 //sdcard
 long record_millis = 0;
@@ -230,7 +229,7 @@ void loop() {
         Serial.print("Point reached");
         pointIndex++;
       }
-      currentTraj = Compass_Get_Trajectory();
+      float currentTraj = Compass_Get_Trajectory();
       data = Calculate_Motor_Data(currentX, currentY, targetX, targetY, currentTraj);
       // TODO: Remove this after first testing
       Serial.print("Traversing... Current traj: ");
@@ -275,7 +274,7 @@ void loop() {
         ledcWrite(RChannel, Idle);
         ledcWrite(LChannel, Idle);
       }
-      currentTraj = Compass_Get_Trajectory();
+      float currentTraj = Compass_Get_Trajectory();
       data = Calculate_Motor_Data(currentX, currentY, homeX, homeY, currentTraj);
       // TODO: Remove this after first testing
       Serial.print("Going home... Current traj: ");
