@@ -2,8 +2,12 @@
 // Battery level reading that corresponds to a low battery reading
 #define LOW_BATTERY_THRESHOLD 2250
 
+<<<<<<< Updated upstream
 int MAX_FSPEED = 220;
-int MAX_RSPEED = 162;
+=======
+int MAX_FSPEED = 210;
+>>>>>>> Stashed changes
+int MAX_RSPEED = 182;
 
 void Navigation_Init() {
   pinMode(VOLTAGE_READER_PIN, INPUT);
@@ -15,8 +19,13 @@ Motor_Data Calculate_Motor_Data(double x0, double y0, double x1, double y1, doub
   double xc = x1 - x0;
   double yc = y1 - y0;
   double c_angle = atan2(yc, xc);
+  Serial.print("c angle: ");
+  Serial.println(c_angle);
   double ang_diff = Parse_Angle(c_angle - dir);
   int motor_diff = (MAX_FSPEED - MAX_RSPEED) * abs(ang_diff)/PI;
+
+  Serial.print("ang diff: ");
+  Serial.println(ang_diff);
   
   Motor_Data data;
   // Calculates motor values for appropriate tragectory
@@ -35,6 +44,8 @@ Motor_Data Calculate_Motor_Data(double x0, double y0, double x1, double y1, doub
 
 bool Is_Battery_Low() {
   int batteryLevel = analogRead(VOLTAGE_READER_PIN);
+  Serial.print("Battery level: ");
+  Serial.println(batteryLevel);
   return batteryLevel <= LOW_BATTERY_THRESHOLD;
 }
 

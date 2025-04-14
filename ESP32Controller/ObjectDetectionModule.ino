@@ -3,10 +3,14 @@
 #define LEFT_TRIG_PIN 33
 #define LEFT_ECHO_PIN 35
 // Defines the minimum object detection range
+<<<<<<< Updated upstream
 #define MIN_DET_RANGE 150
 
 int leftCount = 0;
 int rightCount = 0;
+=======
+#define MIN_DET_RANGE 100
+>>>>>>> Stashed changes
 
 void Object_Detection_Init() {
   pinMode(RIGHT_TRIG_PIN, OUTPUT);

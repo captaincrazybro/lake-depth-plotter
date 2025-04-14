@@ -15,8 +15,8 @@ void GPS_Init() {
   gps_ss.begin(GPSBaud);
   Serial.println("Initialized GPS Module!");
   compass.init();
-  compass.setCalibrationOffsets(310.00, -798.00, -644.00);
-  compass.setCalibrationScales(1.07, 0.85, 1.13);
+  compass.setCalibrationOffsets(-232.00, -642.00, -71.00);
+  compass.setCalibrationScales(0.97, 1.05, 0.99);
 }
 
 void GPS_Update() {

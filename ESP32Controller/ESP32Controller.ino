@@ -15,7 +15,7 @@ const int maxForwardSpeed = 256;
 const int minForwardSpeed = 192;
 const int maxReverseSpeed = 128;
 const int minReverseSpeed = 190;
-int forwardSpeed = 210;
+int forwardSpeed = 230;
 int reverseSpeed = 172;
 
 //grid generation
@@ -30,7 +30,7 @@ int depth;
 int pointIndex = 0;// how the boat knows which point to go to next
 float yPoint = gridPoints[pointIndex][0]; //lat 
 float xPoint = gridPoints[pointIndex][1]; //long
-float threshold = 0.00003;
+float threshold = 0.00005;
 float currentX;
 float currentY;
 float targetX;
@@ -43,11 +43,12 @@ bool goHome = false;
 bool needsStopped = false;
 float homeX;
 float homeY;
-int batteryLevel;
+//int batteryLevel;
 
 //sdcard
 long record_millis = 0;
 long record_delay_ms = 1000;
+bool initFile = false;
 
 // The TinyGPS++ object
 TinyGPSPlus gps;
@@ -137,6 +138,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
       convertCords(myData.a, splitCoordinates);
       memset(gridPoints, 0, sizeof(gridPoints));  // Clear array
       generateGrid(splitCoordinates[0], splitCoordinates[1], splitCoordinates[2], splitCoordinates[3], numPoints, gridPoints);
+      Calibrate_Depth_Sensor();
       isTraversing = true;
     }
   }
@@ -150,7 +152,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
       depth = Measure_Depth();
     }
     if (depth > 0) {
-      Record_Reading(gps.location.lng(), gps.location.lat(), Measure_Depth(), gps.speed.mph());
+      Record_Reading(gps.location.lng(), gps.location.lat(), depth, gps.speed.mph());
       record_millis = millis();
     } else if (depth == 0) {
       Serial.println("Zero depth reading!");
@@ -167,15 +169,23 @@ void setup() {
   Depth_Init();
   GPS_Init();
   SD_Init();
-  New_File(gps.date.year(), gps.date.month(), gps.date.day(), gps.time.hour(), gps.time.minute());
+  Object_Detection_Init();
   record_millis = millis();
   ledcSetup(RChannel, pwmFreq, pwmResolution);
   ledcAttachPin(rightMotor, RChannel);  
   ledcSetup(LChannel, pwmFreq, pwmResolution);
   ledcAttachPin(leftMotor, LChannel);  
 
+  Calibrate_Depth_Sensor();
+
   // Set device as a Wi-Fi Station
   WiFi.mode(WIFI_STA);
+
+  // while (true) {
+  //   float traj = Compass_Get_Trajectory();
+  //   Serial.println(traj);
+  //   delay(500);
+  // }
 
   // Init ESP-NOW
   if (esp_now_init() != ESP_OK) {
@@ -190,19 +200,18 @@ void setup() {
  
 void loop() {
   // Updates the gps store
-  GPS_Update();
 
-  while (!gps.location.isValid()) {
-    //Serial.println("Waiting for GPS fix...");
-    //Serial.print("Lat: "); Serial.println(gps.location.lat(), 6);
-    //Serial.print("Lng: "); Serial.println(gps.location.lng(), 6);
-    //Serial.print("Satellites: "); Serial.println(gps.satellites.value());
+  while (!gps.location.isUpdated()) { GPS_Update(); };
 
-    delay(100);
-    GPS_Update();
+  // Initializes the first file once the gps has a lock for the first time
+  if (gps.location.isUpdated() && !initFile) {
+    New_File(gps.date.year(), gps.date.month(), gps.date.day(), gps.time.hour(), gps.time.minute());
+    initFile = true;
   }
 
+
   // Waits for first GPS lock then records home coordinates
+
   if (!gpsLockFound && gps.location.isValid()) {//changed this from updated to valid
     gpsLockFound = true;
     homeX = gps.location.lng();
@@ -212,16 +221,6 @@ void loop() {
     Serial.print(homeY);
   }
 
-  // if (isIdle){//needs this or only goes idle for a second
-  //   ledcWrite(RChannel, Idle);
-  //   ledcWrite(LChannel, Idle);
-  // }
-
-  batteryLevel = analogRead(4);
-  if (batteryLevel <= 2722) {//2722 = 12v
-    isTraversing = false;
-    goHome = true;
-  }
   
   if (needsStopped) {
     ledcWrite(RChannel, Idle);
@@ -229,6 +228,24 @@ void loop() {
     needsStopped = false;
   } 
   else {
+
+    // Left object detection doesn't work atm, fix later
+    if ((Right_Obstacle_Detected()) && (isTraversing || goHome)){
+
+      Serial.print("obstacle");
+      //go backwards for a second
+      ledcWrite(RChannel, reverseSpeed);
+      ledcWrite(LChannel, reverseSpeed);
+      delay(1000);
+      //go right for a 3/4 a second
+      ledcWrite(RChannel, reverseSpeed);
+      ledcWrite(LChannel, forwardSpeed);
+      delay(750);
+      //go forward for half a second
+      ledcWrite(RChannel, forwardSpeed);
+      ledcWrite(LChannel, forwardSpeed);
+      delay(500);
+    }
     // If in the midst of traversing point grid
     if (isTraversing) {
       currentX = gps.location.lng();
@@ -248,10 +265,10 @@ void loop() {
       // TODO: Remove this after first testing
       Serial.print("Traversing... Current traj: ");
       Serial.println(currentTraj);
-      Serial.println(currentX);
-      Serial.println(currentY);
-      Serial.println(targetX);
-      Serial.println(targetY);
+      Serial.println(currentX,6);
+      Serial.println(currentY,6);
+      Serial.println(targetX,6);
+      Serial.println(targetY,6);
       Serial.println(data.left);
       Serial.println(data.right);
       //Serial.print(currentTraj);
@@ -262,11 +279,11 @@ void loop() {
 
       // Measures the depth
       depth = Measure_Depth();
-      for (int i = 0; i < 9 && depth <= 0; i++) {
-        depth = Measure_Depth();
-      }
+      // for (int i = 0; i < 4 && depth <= 0; i++) {
+      //   depth = Measure_Depth();
+      // }
       if (depth > 0 && (millis() - record_millis) > record_delay_ms) {
-        Record_Reading(gps.location.lng(), gps.location.lat(), Measure_Depth(), gps.speed.mph());
+        Record_Reading(gps.location.lng(), gps.location.lat(), depth, gps.speed.mph());
         record_millis = millis();
       }
 
@@ -295,11 +312,14 @@ void loop() {
       data = Calculate_Motor_Data(currentX, currentY, homeX, homeY, currentTraj);
       // TODO: Remove this after first testing
       Serial.print("Going home... Current traj: ");
+      Serial.println(currentTraj);
       Serial.print("x: ");
       Serial.println(dx);
       Serial.print("y: ");
       Serial.println(dy);
-      Serial.print(dD);
+      Serial.println(dD);
+      Serial.println(data.left);
+      Serial.println(data.right);
       //Serial.print(currentTraj);
       //Serial.print(", Left code: ");
       //Serial.print(data.left);
@@ -310,5 +330,5 @@ void loop() {
       ledcWrite(LChannel, data.left);
     }
   }
-  delay(100);
+  //delay(100);
 }

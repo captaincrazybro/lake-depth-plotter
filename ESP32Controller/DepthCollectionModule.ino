@@ -19,7 +19,7 @@ int Measure_Depth() {
   // Delays for a bit
   delay(100);
   if(Serial2.available() > 0){
-    delay(4);
+    delay(8);
     if(Serial2.read() == 0xff){ 
       buffer_RTT[0] = 0xff;
       // Reads all four
@@ -45,4 +45,12 @@ int Measure_Depth() {
   }
 
   return Depth_Reading;
+}
+
+void Calibrate_Depth_Sensor() {
+  for (int i = 0; i < 49; i++) {
+    int depth = Measure_Depth();
+    Serial.print("Calibrating depth... Value: ");
+    Serial.println(depth);
+  }
 }
