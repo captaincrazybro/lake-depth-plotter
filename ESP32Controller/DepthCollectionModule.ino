@@ -20,7 +20,7 @@ int Measure_Depth() {
   delay(100);
   if(Serial2.available() > 0){
     delay(4);
-    if(Serial2.read() == 0xff){    
+    if(Serial2.read() == 0xff){ 
       buffer_RTT[0] = 0xff;
       // Reads all four
       for (int i=1; i<4; i++){

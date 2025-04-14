@@ -146,6 +146,9 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 
     // Test depth
     depth = Measure_Depth();
+    for (int i = 0; i < 9 && depth <= 0; i++) {
+      depth = Measure_Depth();
+    }
     if (depth > 0) {
       Record_Reading(gps.location.lng(), gps.location.lat(), Measure_Depth(), gps.speed.mph());
       record_millis = millis();
@@ -259,6 +262,9 @@ void loop() {
 
       // Measures the depth
       depth = Measure_Depth();
+      for (int i = 0; i < 9 && depth <= 0; i++) {
+        depth = Measure_Depth();
+      }
       if (depth > 0 && (millis() - record_millis) > record_delay_ms) {
         Record_Reading(gps.location.lng(), gps.location.lat(), Measure_Depth(), gps.speed.mph());
         record_millis = millis();
