@@ -146,11 +146,14 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 
     // Test depth
     depth = Measure_Depth();
-    if (depth != 0) {
+    if (depth > 0) {
       Record_Reading(gps.location.lng(), gps.location.lat(), Measure_Depth(), gps.speed.mph());
       record_millis = millis();
-    } else {
+    } else if (depth == 0) {
       Serial.println("Zero depth reading!");
+    } else {
+      Serial.print("Error depth reading: ");
+      Serial.println(depth);
     }
   }
 }
@@ -256,7 +259,7 @@ void loop() {
 
       // Measures the depth
       depth = Measure_Depth();
-      if (depth != 0 && (millis() - record_millis) > record_delay_ms) {
+      if (depth > 0 && (millis() - record_millis) > record_delay_ms) {
         Record_Reading(gps.location.lng(), gps.location.lat(), Measure_Depth(), gps.speed.mph());
         record_millis = millis();
       }
