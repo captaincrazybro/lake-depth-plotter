@@ -3,7 +3,10 @@
 #define LEFT_TRIG_PIN 33
 #define LEFT_ECHO_PIN 35
 // Defines the minimum object detection range
-#define MIN_DET_RANGE 300
+#define MIN_DET_RANGE 150
+
+int leftCount = 0;
+int rightCount = 0;
 
 void Object_Detection_Init() {
   pinMode(RIGHT_TRIG_PIN, OUTPUT);
@@ -41,9 +44,23 @@ int Get_Left_Distance() {
 }
 
 bool Right_Obstacle_Detected() {
-  return Get_Right_Distance() <= MIN_DET_RANGE;
+  int distance = Get_Right_Distance();
+  if (distance <= MIN_DET_RANGE) {
+    rightCount++;
+    if (rightCount >= 3) return true;
+  } else {
+    rightCount = 0;
+  }
+  return false;
 }
 
 bool Left_Obstacle_Detected() {
-  return Get_Left_Distance() <= MIN_DET_RANGE;
+  int distance = Get_Left_Distance();
+  if (distance <= MIN_DET_RANGE) {
+    leftCount++;
+    if (leftCount >= 3) return true;
+  } else {
+    leftCount = 0;
+  }
+  return false;
 }

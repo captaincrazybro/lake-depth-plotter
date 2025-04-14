@@ -29,6 +29,8 @@ esp_now_peer_info_t peerInfo;
 #define RX_TIMEOUT_VALUE                            1000
 #define BUFFER_SIZE                                 45 // Define the payload size here
 
+#define VOLTAGE_READ_PIN 7
+
 //LoRa Vars
 char txpacket[BUFFER_SIZE];
 char rxpacket[BUFFER_SIZE];
@@ -36,6 +38,7 @@ static RadioEvents_t RadioEvents;
 int16_t txNumber;
 int16_t rssi,rxSize;
 bool lora_idle = true;
+bool lowBatHomeSent = false;
 
 // callback when data is sent
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
@@ -93,7 +96,18 @@ void loop()
     Radio.Rx(0);
   }
   Radio.IrqProcess( );
-  // delay(2000);
+
+  // Code to check voltage
+  int batteryLevel = analogRead(VOLTAGE_READ_PIN);
+  if (batteryLevel <= 2722 && !lowBatHomeSent) {
+    strcpy(myData.a, "h");
+    Serial.println("Low battery detected! Sending home...");
+    Send_ESP_Now_Sig();
+    lora_idle = true;
+    lowBatHomeSent = true;
+  }
+
+  delay(100);
 }
 
 void Send_ESP_Now_Sig() {
